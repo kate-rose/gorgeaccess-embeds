@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Finding Abortion Care in the Gorge</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: Georgia, 'Times New Roman', serif;
+    background: #FAE8DC;
+    color: #1a1a2e;
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 0 0 40px 0;
+  }
+
+  /* ── STEP 1 BANNER ── */
+  .step-banner {
+    display: flex;
+    gap: 18px;
+    align-items: flex-start;
+    background: white;
+    border: 2px solid #1a1a2e;
+    border-radius: 10px;
+    padding: 22px 24px;
+    margin-bottom: 20px;
+  }
+
+  .step-num {
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: white;
+    background: #1a1a2e;
+    border-radius: 20px;
+    padding: 5px 11px;
+    white-space: nowrap;
+    margin-top: 3px;
+    flex-shrink: 0;
+  }
+
+  .step-body strong {
+    display: block;
+    font-family: Georgia, serif;
+    font-style: italic;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin-bottom: 8px;
+  }
+
+  .step-body p {
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    font-size: 0.875rem;
+    color: #5a4a42;
+    line-height: 1.6;
+    margin-bottom: 14px;
+  }
+
+  .step-body p.reassure {
+    font-style: italic;
+    color: #1a1a2e;
+    background: rgba(224,92,48,0.08);
+    border-radius: 6px;
+    padding: 10px 14px;
+  }
+
+  .btn-step {
+    display: inline-block;
+    background: #1a1a2e;
+    color: white;
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    font-size: 0.85rem;
+    font-weight: 700;
+    padding: 9px 16px;
+    border-radius: 5px;
+    text-decoration: none;
+    transition: background 0.15s;
+  }
+
+  .btn-step:hover { background: #2e2e50; }
+
+  @media (max-width: 480px) {
+    .step-banner { flex-direction: column; gap: 10px; }
+  }
+
+  /* ── MAIL OPTION BANNER ── */
+  .mail-option {
+    background: #1a1a2e;
+    color: #FAE8DC;
+    border-radius: 10px;
+    padding: 28px 28px 24px;
+    margin-bottom: 28px;
+  }
+
+  .mail-option .pill {
+    display: inline-block;
+    background: #E05C30;
+    color: white;
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border-radius: 20px;
+    margin-bottom: 12px;
+  }
+
+  .mail-option h2 {
+    font-size: 1.45rem;
+    font-style: italic;
+    font-weight: 700;
+    line-height: 1.25;
+    margin-bottom: 10px;
+    color: #FAE8DC;
+  }
+
+  .mail-option p {
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    font-size: 0.92rem;
+    line-height: 1.6;
+    color: #d4c4ba;
+    margin-bottom: 16px;
+  }
+
+  .mail-option .check-list {
+    list-style: none;
+    margin-bottom: 20px;
+  }
+
+  .mail-option .check-list li {
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    font-size: 0.9rem;
+    color: #FAE8DC;
+    padding: 4px 0;
+    padding-left: 22px;
+    position: relative;
+  }
+
+  .mail-option .check-list li::before {
+    content: '✓';
+    color: #E05C30;
+    position: absolute;
+    left: 0;
+    font-weight: 700;
+  }
+
+  .btn-primary {
+    display: inline-block;
+    background: #E05C30;
+    color: white;
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    font-size: 0.95rem;
+    font-weight: 700;
+    padding: 12px 22px;
+    border-radius: 6px;
+    text-decoration: none;
+    transition: background 0.15s;
+  }
+
+  .btn-primary:hover { background: #c44e25; }
+
+  .btn-secondary {
+    display: inline-block;
+    background: transparent;
+    color: #FAE8DC;
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    font-size: 0.9rem;
+    font-weight: 600;
+    padding: 12px 22px;
+    border-radius: 6px;
+    text-decoration: none;
+    border: 1.5px solid rgba(250,232,220,0.4);
+    margin-left: 10px;
+    transition: border-color 0.15s;
+  }
+
+  .btn-secondary:hover { border-color: #FAE8DC; }
+
+  /* ── SECTION DIVIDER ── */
+  .section-label {
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #E05C30;
+    margin-bottom: 8px;
+  }
+
+  h3.section-title {
+    font-size: 1.3rem;
+    font-style: italic;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin-bottom: 6px;
+  }
+
+  .section-sub {
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    font-size: 0.88rem;
+    color: #5a4a42;
+    line-height: 1.5;
+    margin-bottom: 16px;
+  }
+
+  /* ── MAP ── */
+  #map {
+    width: 100%;
+    height: 320px;
+    border-radius: 8px;
+    margin-bottom: 16px;
+    border: 1.5px solid rgba(26,26,46,0.12);
+  }
+
+  /* ── CLINIC CARDS ── */
+  .clinic-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+
+  .clinic-card {
+    background: white;
+    border-radius: 8px;
+    padding: 16px;
+    border: 1.5px solid rgba(26,26,46,0.08);
+  }
+
+  .clinic-card .city {
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #E05C30;
+    margin-bottom: 4px;
+  }
+
+  .clinic-card .drive {
+    font-size: 1.1rem;
+    font-style: italic;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin-bottom: 4px;
+  }
+
+  .clinic-card .note {
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    font-size: 0.8rem;
+    color: #7a6a62;
+    line-height: 1.4;
+  }
+
+  /* ── INEEDANA CALLOUT ── */
+  .ineedana-callout {
+    background: white;
+    border-left: 4px solid #E05C30;
+    border-radius: 0 8px 8px 0;
+    padding: 18px 20px;
+    margin-bottom: 0;
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+  }
+
+  .ineedana-callout .icon {
+    font-size: 1.4rem;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .ineedana-callout .text strong {
+    display: block;
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin-bottom: 4px;
+  }
+
+  .ineedana-callout .text p {
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    font-size: 0.85rem;
+    color: #5a4a42;
+    line-height: 1.5;
+    margin-bottom: 10px;
+  }
+
+  .ineedana-callout a.btn-confirm {
+    display: inline-block;
+    background: #E05C30;
+    color: white;
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    font-size: 0.85rem;
+    font-weight: 700;
+    padding: 8px 16px;
+    border-radius: 5px;
+    text-decoration: none;
+  }
+
+  .ineedana-callout a.btn-confirm:hover { background: #c44e25; }
+
+  /* ── DIVIDER ── */
+  hr.section-divider {
+    border: none;
+    border-top: 1.5px solid rgba(26,26,46,0.1);
+    margin: 28px 0;
+  }
+
+  /* ── LANGUAGE TOGGLE ── */
+  .lang-toggle {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 14px;
+  }
+
+  .lang-toggle button {
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #1a1a2e;
+    background: white;
+    border: 1.5px solid rgba(26,26,46,0.2);
+    border-radius: 20px;
+    padding: 5px 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    overflow: hidden;
+  }
+
+  .lang-toggle button span {
+    padding: 3px 10px;
+    border-radius: 16px;
+    transition: background 0.15s, color 0.15s;
+  }
+
+  .lang-toggle button span.active {
+    background: #1a1a2e;
+    color: white;
+  }
+
+  /* ── INTRO ── */
+  .intro {
+    margin-bottom: 22px;
+  }
+
+  .intro h1 {
+    font-size: 1.55rem;
+    font-style: italic;
+    font-weight: 700;
+    color: #1a1a2e;
+    line-height: 1.2;
+    margin-bottom: 10px;
+  }
+
+  .intro p {
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    font-size: 0.95rem;
+    color: #5a4a42;
+    line-height: 1.6;
+  }
+
+  /* ── PRIVACY NOTE ── */
+  .privacy-note {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    background: rgba(26,26,46,0.05);
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-bottom: 24px;
+  }
+
+  .privacy-note .lock {
+    font-size: 1rem;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  .privacy-note p {
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    font-size: 0.8rem;
+    color: #5a4a42;
+    line-height: 1.5;
+  }
+
+  .privacy-note strong { color: #1a1a2e; }
+
+  @media (max-width: 500px) {
+    .btn-secondary { display: block; margin: 10px 0 0 0; }
+    .ineedana-callout { flex-direction: column; gap: 8px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ── INTRO ── -->
+<!-- ── LANGUAGE TOGGLE (auto-hides if Weglot is active) ── -->
+<div class="lang-toggle" id="langToggle" hidden>
+  <button type="button" aria-label="Switch language / Cambiar idioma">
+    <span data-lang="en">English</span><span data-lang="es">Español</span>
+  </button>
+</div>
+
+<div class="intro">
+  <h1 data-i18n="intro_h1">You have options — here's how to find the right one for you</h1>
+  <p data-i18n="intro_p">
+    There are no abortion clinics in the Gorge, but that doesn't mean you're out of options.
+    Whether that's pills by mail or a clinic visit, this page walks you through it step by step.
+  </p>
+</div>
+
+<!-- ── PRIVACY NOTE ── -->
+<div class="privacy-note">
+  <div class="lock">🔒</div>
+  <p data-i18n="privacy">
+    <strong>On a shared device?</strong> You can browse privately using your browser's
+    incognito or private mode, and clear your history afterward. This page doesn't collect
+    or store anything you do here.
+  </p>
+</div>
+
+<!-- ── STEP 1: KNOW YOUR OPTIONS ── -->
+<div class="step-banner">
+  <div class="step-num" data-i18n="step1_num">Step 1</div>
+  <div class="step-body">
+    <strong data-i18n="step1_h">Find out how far along you are — it shapes everything</strong>
+    <p data-i18n="step1_p">
+      How many weeks pregnant you are decides which options are open to you, including
+      whether you can get pills by mail. You don't need to figure this out alone:
+      local Gorge providers offer free, confidential, all-options pre-appointments
+      where supportive, non-judgmental staff confirm your gestational age and help
+      you weigh your next steps — with no pressure and no commitment.
+    </p>
+    <p class="reassure" data-i18n="step1_reassure">
+      Not sure how far along you are? That's really common — you don't need to know
+      before reaching out. A pre-appointment is exactly where you find out.
+    </p>
+    <a class="btn-step" data-i18n="step1_btn" href="https://www.gorgeaccess.org/local-referrals" target="_blank" rel="noopener">
+      Find a local pre-appointment provider →
+    </a>
+  </div>
+</div>
+
+<!-- ── MEDICATION BY MAIL ── -->
+<div class="mail-option">
+  <div class="pill" data-i18n="mail_pill">Step 2 — if under 11 weeks</div>
+  <h2 data-i18n="mail_h">Abortion medication by mail may be your best option</h2>
+  <p data-i18n="mail_p">If you're under 11 weeks pregnant, abortion pills are safe, effective, and can be sent directly to your home — no travel required. This is especially worth considering if:</p>
+  <ul class="check-list">
+    <li data-i18n="mail_li1">You're within the first 11 weeks of pregnancy</li>
+    <li data-i18n="mail_li2">Travel to Portland or Vancouver is a barrier (distance, work, kids, cost)</li>
+    <li data-i18n="mail_li3">You'd prefer privacy and care in your own home</li>
+    <li data-i18n="mail_li4">You want to avoid wait times at a clinic</li>
+  </ul>
+  <a class="btn-primary" data-i18n="mail_btn1" href="https://www.ineedana.com" target="_blank" rel="noopener">
+    Find mail providers at ineedana.com →
+  </a>
+  <a class="btn-secondary" data-i18n="mail_btn2" href="https://www.ineedana.com" target="_blank" rel="noopener">
+    Learn how it works
+  </a>
+</div>
+
+<!-- ── CLINIC MAP ── -->
+<div class="section-label" data-i18n="map_label">Step 2 — if you need or prefer in-clinic care</div>
+<h3 class="section-title" data-i18n="map_h">Clinics within reach of the Gorge</h3>
+<p class="section-sub" data-i18n="map_sub">
+  The map below shows the cities with abortion clinics closest to Hood River and The Dalles.
+  <strong>Always confirm availability before traveling</strong> — clinic hours and availability change.
+</p>
+
+<div id="map"></div>
+
+<div class="clinic-cards">
+  <div class="clinic-card">
+    <div class="city">Portland, OR</div>
+    <div class="drive" data-i18n="card_pdx_drive">~60 min from Hood River</div>
+    <div class="note" data-i18n="card_pdx_note">Most options, including later-gestational care</div>
+  </div>
+  <div class="clinic-card">
+    <div class="city">Vancouver, WA</div>
+    <div class="drive" data-i18n="card_van_drive">~75 min from Hood River</div>
+    <div class="note" data-i18n="card_van_note">Multiple providers; no additional state restrictions</div>
+  </div>
+  <div class="clinic-card">
+    <div class="city">Yakima, WA</div>
+    <div class="drive" data-i18n="card_yak_drive">~90 min from Hood River</div>
+    <div class="note" data-i18n="card_yak_note">Option for those north of the Gorge</div>
+  </div>
+</div>
+
+<div class="ineedana-callout">
+  <div class="icon">⚠️</div>
+  <div class="text">
+    <strong data-i18n="confirm_h">Confirm availability before you go</strong>
+    <p data-i18n="confirm_p">
+      ineedana.com contacts clinics directly and tracks real-time availability, legal
+      challenges, and wait times. Their listings are far more current than any static page —
+      including this one.
+    </p>
+    <a class="btn-confirm" data-i18n="confirm_btn" href="https://www.ineedana.com" target="_blank" rel="noopener">
+      Check current availability at ineedana.com →
+    </a>
+  </div>
+</div>
+
+<hr class="section-divider">
+
+<p data-i18n="disclaimer" style="font-family:'Helvetica Neue',Arial,sans-serif; font-size:0.8rem; color:#9a8a82; line-height:1.5;">
+  Drive times are approximate from Hood River, OR. Clinic locations shown are cities, not specific addresses.
+  Always use <a href="https://www.ineedana.com" target="_blank" rel="noopener" style="color:#E05C30;">ineedana.com</a>
+  for verified provider information.
+</p>
+
+<script>
+  /* ──────────────────────────────────────────────
+     BILINGUAL SUPPORT (EN / ES)
+     Auto-hides the toggle if Weglot is detected, so
+     Weglot can manage translation instead with no conflict.
+  ────────────────────────────────────────────── */
+  const I18N = {
+    en: {
+      intro_h1: "You have options — here's how to find the right one for you",
+      intro_p: "There are no abortion clinics in the Gorge, but that doesn't mean you're out of options. Whether that's pills by mail or a clinic visit, this page walks you through it step by step.",
+      privacy: "<strong>On a shared device?</strong> You can browse privately using your browser's incognito or private mode, and clear your history afterward. This page doesn't collect or store anything you do here.",
+      step1_num: "Step 1",
+      step1_h: "Find out how far along you are — it shapes everything",
+      step1_p: "How many weeks pregnant you are decides which options are open to you, including whether you can get pills by mail. You don't need to figure this out alone: local Gorge providers offer free, confidential, all-options pre-appointments where supportive, non-judgmental staff confirm your gestational age and help you weigh your next steps — with no pressure and no commitment.",
+      step1_reassure: "Not sure how far along you are? That's really common — you don't need to know before reaching out. A pre-appointment is exactly where you find out.",
+      step1_btn: "Find a local pre-appointment provider →",
+      mail_pill: "Step 2 — if under 11 weeks",
+      mail_h: "Abortion medication by mail may be your best option",
+      mail_p: "If you're under 11 weeks pregnant, abortion pills are safe, effective, and can be sent directly to your home — no travel required. This is especially worth considering if:",
+      mail_li1: "You're within the first 11 weeks of pregnancy",
+      mail_li2: "Travel to Portland or Vancouver is a barrier (distance, work, kids, cost)",
+      mail_li3: "You'd prefer privacy and care in your own home",
+      mail_li4: "You want to avoid wait times at a clinic",
+      mail_btn1: "Find mail providers at ineedana.com →",
+      mail_btn2: "Learn how it works",
+      map_label: "Step 2 — if you need or prefer in-clinic care",
+      map_h: "Clinics within reach of the Gorge",
+      map_sub: "The map below shows the cities with abortion clinics closest to Hood River and The Dalles. <strong>Always confirm availability before traveling</strong> — clinic hours and availability change.",
+      card_pdx_drive: "~60 min from Hood River",
+      card_pdx_note: "Most options, including later-gestational care",
+      card_van_drive: "~75 min from Hood River",
+      card_van_note: "Multiple providers; no additional state restrictions",
+      card_yak_drive: "~90 min from Hood River",
+      card_yak_note: "Option for those north of the Gorge",
+      confirm_h: "Confirm availability before you go",
+      confirm_p: "ineedana.com contacts clinics directly and tracks real-time availability, legal challenges, and wait times. Their listings are far more current than any static page — including this one.",
+      confirm_btn: "Check current availability at ineedana.com →",
+      disclaimer: "Drive times are approximate from Hood River, OR. Clinic locations shown are cities, not specific addresses. Always use <a href=\"https://www.ineedana.com\" target=\"_blank\" rel=\"noopener\" style=\"color:#E05C30;\">ineedana.com</a> for verified provider information.",
+      pop_gorge_title: "The Gorge",
+      pop_gorge_sub: "Hood River · The Dalles",
+      pop_confirm: "Confirm availability at ineedana.com →"
+    },
+    es: {
+      intro_h1: "Tienes opciones — aquí te ayudamos a encontrar la adecuada para ti",
+      intro_p: "No hay clínicas de aborto en el Gorge, pero eso no significa que te quedes sin opciones. Ya sea pastillas por correo o una visita a la clínica, esta página te guía paso a paso.",
+      privacy: "<strong>¿Usas un dispositivo compartido?</strong> Puedes navegar de forma privada con el modo incógnito o privado de tu navegador, y borrar tu historial después. Esta página no recopila ni guarda nada de lo que haces aquí.",
+      step1_num: "Paso 1",
+      step1_h: "Averigua cuántas semanas tienes — eso lo cambia todo",
+      step1_p: "Las semanas de embarazo que tengas determinan qué opciones están disponibles para ti, incluso si puedes recibir pastillas por correo. No tienes que resolver esto sola: los proveedores locales del Gorge ofrecen citas previas gratuitas y confidenciales sobre todas las opciones, donde un personal comprensivo y sin prejuicios confirma tus semanas de embarazo y te ayuda a considerar tus próximos pasos — sin presión y sin compromiso.",
+      step1_reassure: "¿No sabes cuántas semanas tienes? Es muy común — no necesitas saberlo antes de comunicarte. Una cita previa es justo donde lo averiguas.",
+      step1_btn: "Encuentra un proveedor local para una cita previa →",
+      mail_pill: "Paso 2 — si tienes menos de 11 semanas",
+      mail_h: "El aborto con medicamentos por correo puede ser tu mejor opción",
+      mail_p: "Si tienes menos de 11 semanas de embarazo, las pastillas abortivas son seguras, efectivas y se pueden enviar directamente a tu hogar — sin necesidad de viajar. Vale la pena considerarlo especialmente si:",
+      mail_li1: "Estás dentro de las primeras 11 semanas de embarazo",
+      mail_li2: "Viajar a Portland o Vancouver es un obstáculo (distancia, trabajo, hijos, costo)",
+      mail_li3: "Prefieres privacidad y atención en tu propia casa",
+      mail_li4: "Quieres evitar los tiempos de espera en una clínica",
+      mail_btn1: "Encuentra proveedores por correo en ineedana.com →",
+      mail_btn2: "Aprende cómo funciona",
+      map_label: "Paso 2 — si necesitas o prefieres atención en clínica",
+      map_h: "Clínicas al alcance del Gorge",
+      map_sub: "El mapa de abajo muestra las ciudades con clínicas de aborto más cercanas a Hood River y The Dalles. <strong>Siempre confirma la disponibilidad antes de viajar</strong> — los horarios y la disponibilidad de las clínicas cambian.",
+      card_pdx_drive: "~60 min desde Hood River",
+      card_pdx_note: "Más opciones, incluida atención en etapas más avanzadas",
+      card_van_drive: "~75 min desde Hood River",
+      card_van_note: "Varios proveedores; sin restricciones estatales adicionales",
+      card_yak_drive: "~90 min desde Hood River",
+      card_yak_note: "Opción para quienes están al norte del Gorge",
+      confirm_h: "Confirma la disponibilidad antes de ir",
+      confirm_p: "ineedana.com se comunica directamente con las clínicas y monitorea la disponibilidad en tiempo real, los desafíos legales y los tiempos de espera. Sus listados están mucho más actualizados que cualquier página fija — incluida esta.",
+      confirm_btn: "Verifica la disponibilidad actual en ineedana.com →",
+      disclaimer: "Los tiempos de viaje son aproximados desde Hood River, OR. Las ubicaciones mostradas son ciudades, no direcciones específicas. Usa siempre <a href=\"https://www.ineedana.com\" target=\"_blank\" rel=\"noopener\" style=\"color:#E05C30;\">ineedana.com</a> para información verificada de proveedores.",
+      pop_gorge_title: "El Gorge",
+      pop_gorge_sub: "Hood River · The Dalles",
+      pop_confirm: "Verifica la disponibilidad en ineedana.com →"
+    }
+  };
+
+  let currentLang = 'en';
+
+  function applyLang(lang) {
+    currentLang = lang;
+    const dict = I18N[lang];
+    document.documentElement.lang = lang;
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+      const key = el.getAttribute('data-i18n');
+      if (dict[key] != null) el.innerHTML = dict[key];
+    });
+    // toggle button active state
+    document.querySelectorAll('.lang-toggle span').forEach(s => {
+      s.classList.toggle('active', s.getAttribute('data-lang') === lang);
+    });
+    if (typeof refreshPopups === 'function') refreshPopups();
+  }
+
+  // Only show our toggle if Weglot is NOT handling translation.
+  let langToggleReady = false;
+  function initLangToggle() {
+    if (langToggleReady) return; // guard against double-binding
+    const weglotActive = !!(window.Weglot || document.querySelector('.weglot-container, [data-wg-translated]'));
+    const toggle = document.getElementById('langToggle');
+    if (weglotActive) {
+      toggle.hidden = true; // let Weglot manage language
+      langToggleReady = true;
+      return;
+    }
+    toggle.hidden = false;
+    toggle.querySelector('button').addEventListener('click', () => {
+      applyLang(currentLang === 'en' ? 'es' : 'en');
+    });
+    applyLang('en');
+    langToggleReady = true;
+  }
+  // Weglot may load slightly after us; check again shortly.
+  window.addEventListener('load', initLangToggle);
+  setTimeout(initLangToggle, 1500);
+
+  // Map centered roughly on Hood River / The Dalles
+  const map = L.map('map', { zoomControl: true, scrollWheelZoom: false }).setView([45.68, -121.5], 7);
+
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+    attribution: '© <a href="https://carto.com/">CARTO</a> © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    subdomains: 'abcd',
+    maxZoom: 14
+  }).addTo(map);
+
+  // Home marker — Hood River / Gorge area
+  const homeIcon = L.divIcon({
+    html: `<div style="
+      width:14px; height:14px; border-radius:50%;
+      background:#1a1a2e; border:3px solid #FAE8DC;
+      box-shadow:0 0 0 2px #1a1a2e;
+    "></div>`,
+    iconSize: [14, 14],
+    iconAnchor: [7, 7],
+    className: ''
+  });
+
+  // Clinic city markers
+  const clinicIcon = L.divIcon({
+    html: `<div style="
+      width:16px; height:16px; border-radius:50%;
+      background:#E05C30; border:3px solid white;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+    "></div>`,
+    iconSize: [16, 16],
+    iconAnchor: [8, 8],
+    className: ''
+  });
+
+  // Gorge region marker
+  const gorgeMarker = L.marker([45.71, -121.51], { icon: homeIcon }).addTo(map);
+
+  // Clinic data — drive/note text pulled from the I18N dictionary by key
+  const clinics = [
+    { city: 'Portland, OR',  latlng: [45.523, -122.676], driveKey: 'card_pdx_drive', noteKey: 'card_pdx_note' },
+    { city: 'Vancouver, WA', latlng: [45.638, -122.661], driveKey: 'card_van_drive', noteKey: 'card_van_note' },
+    { city: 'Yakima, WA',    latlng: [46.602, -120.506], driveKey: 'card_yak_drive', noteKey: 'card_yak_note' }
+  ];
+
+  const clinicMarkers = clinics.map(c => {
+    const m = L.marker(c.latlng, { icon: clinicIcon }).addTo(map);
+    m._clinic = c;
+    return m;
+  });
+
+  // Rebuilds all popup content in the current language
+  function refreshPopups() {
+    const t = I18N[currentLang];
+    gorgeMarker.bindPopup(
+      `<b style="font-family:Georgia,serif;">${t.pop_gorge_title}</b><br>` +
+      `<span style="font-family:sans-serif;font-size:12px;">${t.pop_gorge_sub}</span>`
+    );
+    clinicMarkers.forEach(m => {
+      const c = m._clinic;
+      m.bindPopup(`
+        <b style="font-family:Georgia,serif;font-size:14px;">${c.city}</b><br>
+        <span style="font-family:sans-serif;font-size:12px;color:#5a4a42;">${t[c.driveKey]}</span><br>
+        <span style="font-family:sans-serif;font-size:11px;color:#7a6a62;">${t[c.noteKey]}</span><br><br>
+        <a href="https://www.ineedana.com" target="_blank" rel="noopener"
+           style="font-family:sans-serif;font-size:12px;font-weight:700;color:#E05C30;text-decoration:none;">
+          ${t.pop_confirm}
+        </a>
+      `);
+    });
+  }
+  refreshPopups(); // initial (English) build
+</script>
+</body>
+</html>
