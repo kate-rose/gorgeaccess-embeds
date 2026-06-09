@@ -1,0 +1,56 @@
+<!--
+  GORGE ACCESS — Weglot ↔ embed language sync
+  ───────────────────────────────────────────
+  Weglot can't translate content inside an iframe. This snippet watches
+  Weglot's current language and tells the clinic-finder embed to match.
+
+  WHERE TO PASTE IT:
+  Squarespace → Settings → Advanced → Code Injection → FOOTER
+  (Paste once. It applies site-wide and only acts on the embed iframe.)
+-->
+<script>
+(function () {
+  function currentLang() {
+    try {
+      if (window.Weglot && typeof Weglot.getCurrentLang === 'function') {
+        return Weglot.getCurrentLang() === 'es' ? 'es' : 'en';
+      }
+    } catch (e) {}
+    // Fallback: <html lang="es"> or a /es/ URL path
+    var htmlLang = (document.documentElement.lang || '').toLowerCase();
+    if (htmlLang.indexOf('es') === 0) return 'es';
+    if (/(^|\/)es(\/|$)/.test(location.pathname)) return 'es';
+    return 'en';
+  }
+
+  function pushTo(win) {
+    try { win.postMessage({ gorgeEmbed: true, lang: currentLang() }, '*'); } catch (e) {}
+  }
+
+  function pushToAllEmbeds() {
+    document.querySelectorAll('iframe').forEach(function (f) {
+      if (f.src && f.src.indexOf('gorgeaccess-embeds') !== -1 && f.contentWindow) {
+        pushTo(f.contentWindow);
+      }
+    });
+  }
+
+  // 1) When an embed announces it's ready, reply with the current language.
+  window.addEventListener('message', function (e) {
+    if (e.data && e.data.gorgeEmbedReady && e.source) pushTo(e.source);
+  });
+
+  // 2) When the page loads, push once (covers embeds that loaded first).
+  window.addEventListener('load', function () { setTimeout(pushToAllEmbeds, 600); });
+
+  // 3) When Weglot switches language, update the embed live.
+  function hookWeglot() {
+    if (window.Weglot && typeof Weglot.on === 'function') {
+      Weglot.on('languageChanged', pushToAllEmbeds);
+    } else {
+      setTimeout(hookWeglot, 500); // Weglot may load after this script
+    }
+  }
+  hookWeglot();
+})();
+</script>
