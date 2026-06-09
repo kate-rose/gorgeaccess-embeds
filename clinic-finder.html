@@ -619,27 +619,50 @@
     if (typeof refreshPopups === 'function') refreshPopups();
   }
 
-  // Only show our toggle if Weglot is NOT handling translation.
   let langToggleReady = false;
+  let externalControl = false; // true once the parent page (e.g. Weglot) drives language
+
+  function setToggleVisible(v) {
+    const t = document.getElementById('langToggle');
+    if (t) t.hidden = !v;
+  }
+
+  // The parent Squarespace page can tell us which language to show.
+  // (Weglot can't translate inside an iframe, so we sync via postMessage.)
+  window.addEventListener('message', (e) => {
+    const d = e.data;
+    if (!d || typeof d !== 'object' || !d.gorgeEmbed) return;
+    if (d.lang === 'es' || d.lang === 'en') {
+      externalControl = true;
+      setToggleVisible(false); // parent controls language; hide our own toggle
+      applyLang(d.lang);
+    }
+  });
+
   function initLangToggle() {
     if (langToggleReady) return; // guard against double-binding
-    const weglotActive = !!(window.Weglot || document.querySelector('.weglot-container, [data-wg-translated]'));
+    langToggleReady = true;
+
+    // 1) Honor an explicit ?lang=es / ?lang=en in the iframe URL, if present.
+    const urlLang = new URLSearchParams(location.search).get('lang');
+    const startLang = (urlLang === 'es' || urlLang === 'en') ? urlLang : 'en';
+
+    // 2) Wire up the manual toggle (used when no parent is controlling language).
     const toggle = document.getElementById('langToggle');
-    if (weglotActive) {
-      toggle.hidden = true; // let Weglot manage language
-      langToggleReady = true;
-      return;
-    }
-    toggle.hidden = false;
     toggle.querySelector('button').addEventListener('click', () => {
       applyLang(currentLang === 'en' ? 'es' : 'en');
     });
-    applyLang('en');
-    langToggleReady = true;
+
+    if (!externalControl) {
+      setToggleVisible(true);
+      applyLang(startLang);
+    }
+
+    // 3) Announce readiness so the parent page can push the current language.
+    try { window.parent.postMessage({ gorgeEmbedReady: true }, '*'); } catch (e) {}
   }
-  // Weglot may load slightly after us; check again shortly.
   window.addEventListener('load', initLangToggle);
-  setTimeout(initLangToggle, 1500);
+  setTimeout(initLangToggle, 300);
 
   // Map centered roughly on Hood River / The Dalles
   const map = L.map('map', { zoomControl: true, scrollWheelZoom: false }).setView([45.68, -121.5], 7);
